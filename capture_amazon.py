@@ -18,6 +18,8 @@ from .capture_utils import (
     ProxyError,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def dismiss_amazon_cookie_banner(page, timeout=8000):
     for selector, label in [
@@ -81,6 +83,105 @@ def close_amazon_signin_popup(page):
     except:
         pass
     return False
+
+
+def _set_zip_via_modal(page, zip_code: str) -> bool:
+    deliver_to_selectors = [
+        "#nav-global-location-slot",
+        "#glow-ingress-line2",
+        "#glow-ingress-line1",
+        "#nav-global-location-slot a",
+        "[data-action='a-modal'] a",
+        "#nav-global-location-popover a",
+        "#glow-ingress-block a",
+        "[data-csa-c-content-id='nav-global-location-slot'] a",
+        "a[id^='nav-global-location']",
+        "#nav-tools #nav-global-location-slot",
+    ]
+
+    for selector in deliver_to_selectors:
+        try:
+            el = page.locator(selector).first
+            if el.is_visible(timeout=2000):
+                el.click()
+                logger.info("Found deliver-to element with selector: %s", selector)
+                break
+        except Exception:
+            continue
+    else:
+        logger.warning("Could not find deliver-to element, trying JS click approach...")
+        try:
+            page.evaluate("""() => {
+                var el = document.getElementById('glow-ingress-line2')
+                    || document.getElementById('nav-global-location-slot')
+                    || document.querySelector('[data-action="a-modal"] a')
+                    || document.querySelector('#nav-global-location-slot a')
+                    || document.querySelector('[data-csa-c-content-id="nav-global-location-slot"] a')
+                    || document.querySelector('a[id^="nav-global-location"]');
+                if (el) { el.click(); return; }
+                var links = document.querySelectorAll('a, button');
+                for (var i = 0; i < links.length; i++) {
+                    if (links[i].textContent && (links[i].textContent.indexOf('Deliver to') !== -1 || links[i].textContent.indexOf('Ship to') !== -1)) {
+                        links[i].click();
+                        return;
+                    }
+                }
+            }""")
+        except Exception:
+            pass
+
+    time.sleep(2)
+
+    zip_input = None
+    zip_selectors = [
+        "#GLUXZipUpdateInput",
+        "input[name='GLUXZipUpdateInput']",
+        "input.glux-input",
+        "input[aria-label*='ZIP']",
+        "input[aria-label*='zip']",
+        "input[aria-label*='Zip code']",
+        "input[placeholder*='ZIP']",
+        "input[placeholder*='Zip']",
+    ]
+    for selector in zip_selectors:
+        try:
+            inp = page.locator(selector).first
+            if inp.is_visible(timeout=2000):
+                zip_input = inp
+                logger.info("Found zip input with selector: %s", selector)
+                break
+        except Exception:
+            continue
+
+    if zip_input is None:
+        return False
+
+    try:
+        zip_input.fill("")
+        zip_input.fill(zip_code)
+        zip_input.press("Tab")
+    except Exception:
+        return False
+
+    time.sleep(1)
+
+    apply_selectors = [
+        "#GLUXZipUpdate",
+        "input#GLUXZipUpdate",
+        "input[aria-labelledby*='GLUXZipUpdate']",
+        "button[aria-labelledby*='GLUXZipUpdate']",
+    ]
+    for selector in apply_selectors:
+        try:
+            btn = page.locator(selector).first
+            if btn.is_visible(timeout=2000):
+                btn.click()
+                logger.info("Clicked apply button: %s", selector)
+                break
+        except Exception:
+            continue
+
+    return True
 
 
 def remove_amazon_overlays(page):
@@ -174,7 +275,8 @@ def dismiss_all_amazon_popups(page, cookie_timeout=8000):
     dismiss_amazon_continue_shopping(page)
 
 
-def capture_amazon(url: str, max_scrolls: int = 30, headless: bool = True, timezone: str = None, locale: str = None, proxy: str = None, proxy_timeout: int = 20, geoip: bool = None, save_image: bool = False) -> dict:
+def capture_amazon(url: str, max_scrolls: int = 3, headless: bool = True, timezone: str = None, locale: str = None, proxy: str = None, proxy_timeout: int = 20, geoip: bool = None, save_image: bool = False, **kwargs) -> dict:
+    zip_code = kwargs.get("zip_code")
     tmpdir = tempfile.mkdtemp(prefix="jvcapture_amazon_")
     save_dir = Path(tmpdir)
     save_dir.mkdir(parents=True, exist_ok=True)
@@ -225,6 +327,17 @@ def capture_amazon(url: str, max_scrolls: int = 30, headless: bool = True, timez
             time.sleep(5)
 
         dismiss_amazon_continue_shopping(page)
+
+        if zip_code:
+            logger.info("Setting Amazon delivery ZIP to %s", zip_code)
+            zip_set = _set_zip_via_modal(page, zip_code)
+            if zip_set:
+                time.sleep(2)
+                page.reload()
+                time.sleep(2)
+                dismiss_all_amazon_popups(page, cookie_timeout=3000)
+                dismiss_amazon_continue_shopping(page)
+                remove_amazon_overlays(page)
 
         asin = "default"
         m = re.search(r'/dp/([A-Z0-9]{10})', url, re.IGNORECASE)

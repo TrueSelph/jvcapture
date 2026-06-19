@@ -51,23 +51,23 @@ Navigate to a URL in a stealth browser, scroll through the page, and return a st
 
 **Request body:**
 
-| Field         | Type          | Required | Default  | Description                                                                                                                    |
-| ------------- | ------------- | -------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `url`         | string (URL)  | Yes      | —        | The URL of the page to capture                                                                                                 |
-| `max_scrolls` | integer       | No       | `30`     | Maximum number of scroll-and-screenshot steps. Each step scrolls approximately one viewport height. Range: 1–200.              |
-| `timezone`    | string        | No       | `null`   | IANA timezone for the browser session (e.g. `America/New_York`). Sets the browser's timezone fingerprint.                      |
-| `locale`      | string        | No       | `null`   | BCP 47 locale for the browser session (e.g. `en-US`). Sets the browser's language/locale fingerprint.                          |
-| `proxy`       | string        | No       | `null`   | Proxy URL to route traffic through (e.g. `http://user:pass@proxy:8080`, `socks5://user:pass@proxy:1080`).                       |
-| `save_image`  | boolean       | No       | `false`  | When true, saves the screenshot PNG to the local `screenshots/` directory and includes the file path in the response.         |
+| Field         | Type         | Required | Default | Description                                                                                                           |
+| ------------- | ------------ | -------- | ------- | --------------------------------------------------------------------------------------------------------------------- |
+| `url`         | string (URL) | Yes      | —       | The URL of the page to capture                                                                                        |
+| `max_scrolls` | integer      | No       | `3`     | Maximum number of scroll-and-screenshot steps. Each step scrolls approximately one viewport height. Range: 1–200.     |
+| `timezone`    | string       | No       | `null`  | IANA timezone for the browser session (e.g. `America/New_York`). Sets the browser's timezone fingerprint.             |
+| `locale`      | string       | No       | `null`  | BCP 47 locale for the browser session (e.g. `en-US`). Sets the browser's language/locale fingerprint.                 |
+| `proxy`       | string       | No       | `null`  | Proxy URL to route traffic through (e.g. `http://user:pass@proxy:8080`, `socks5://user:pass@proxy:1080`).             |
+| `save_image`  | boolean      | No       | `false` | When true, saves the screenshot PNG to the local `screenshots/` directory and includes the file path in the response. |
 
 **Response fields:**
 
-| Field        | Type          | Description                                                                                    |
-| ------------ | ------------- | ---------------------------------------------------------------------------------------------- |
-| `site`       | string        | `"amazon"` for Amazon URLs, `"unknown"` for everything else                                   |
-| `url`        | string        | The URL that was captured                                                                       |
-| `image`      | string        | Base64-encoded PNG screenshot of the page                                                      |
-| `image_path` | string\|null  | Local file path of the saved screenshot (only present when `save_image=true`, `null` otherwise) |
+| Field        | Type         | Description                                                                                     |
+| ------------ | ------------ | ----------------------------------------------------------------------------------------------- |
+| `site`       | string       | `"amazon"` for Amazon URLs, `"unknown"` for everything else                                     |
+| `url`        | string       | The URL that was captured                                                                       |
+| `image`      | string       | Base64-encoded PNG screenshot of the page                                                       |
+| `image_path` | string\|null | Local file path of the saved screenshot (only present when `save_image=true`, `null` otherwise) |
 
 **Example — basic capture:**
 
@@ -132,22 +132,23 @@ Response when `save_image=false` (default):
 
 Cloakbrowser supports location-aware browsing through three parameters:
 
-| Parameter  | What it does                                                          | Example values                     |
-| ---------- | --------------------------------------------------------------------- | ----------------------------------- |
-| `timezone` | Sets the browser's IANA timezone via Chromium fingerprint flags       | `America/New_York`, `Europe/London` |
-| `locale`   | Sets the browser's BCP 47 locale (language + region)                 | `en-US`, `de-DE`, `ja-JP`          |
+| Parameter  | What it does                                                         | Example values                      |
+| ---------- | -------------------------------------------------------------------- | ----------------------------------- |
+| `timezone` | Sets the browser's IANA timezone via Chromium fingerprint flags      | `America/New_York`, `Europe/London` |
+| `locale`   | Sets the browser's BCP 47 locale (language + region)                 | `en-US`, `de-DE`, `ja-JP`           |
 | `proxy`    | Routes all traffic through a proxy, changing the apparent IP address | `http://user:pass@proxy:8080`       |
 
 **Common combinations:**
 
-| Location       | timezone             | locale  | proxy (example)                          |
-| -------------- | -------------------- | ------- | ---------------------------------------- |
-| US East Coast  | `America/New_York`    | `en-US` | `http://user:pass@us-east-proxy:8080`    |
-| UK             | `Europe/London`      | `en-GB` | `http://user:pass@uk-proxy:8080`         |
-| Germany        | `Europe/Berlin`      | `de-DE` | `http://user:pass@de-proxy:8080`         |
-| Japan          | `Asia/Tokyo`         | `ja-JP` | `http://user:pass@jp-proxy:8080`         |
+| Location      | timezone           | locale  | proxy (example)                       |
+| ------------- | ------------------ | ------- | ------------------------------------- |
+| US East Coast | `America/New_York` | `en-US` | `http://user:pass@us-east-proxy:8080` |
+| UK            | `Europe/London`    | `en-GB` | `http://user:pass@uk-proxy:8080`      |
+| Germany       | `Europe/Berlin`    | `de-DE` | `http://user:pass@de-proxy:8080`      |
+| Japan         | `Asia/Tokyo`       | `ja-JP` | `http://user:pass@jp-proxy:8080`      |
 
 Proxy supports HTTP, HTTPS, and SOCKS5:
+
 - HTTP: `http://user:pass@proxy:8080`
 - HTTPS: `https://user:pass@proxy:8080`
 - SOCKS5: `socks5://user:pass@proxy:1080`

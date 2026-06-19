@@ -1,6 +1,8 @@
 fastapi>=0.100.0
 uvicorn>=0.20.0
 pydantic>=2.0.0
+pydantic-settings>=2.0.0
 cloakbrowser
 Pillow
 httpx
+python-dotenv

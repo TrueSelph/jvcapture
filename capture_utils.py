@@ -348,7 +348,7 @@ def human_scroll_to_top(page):
     time.sleep(1)
 
 
-def capture_scroll_screenshot(page, save_dir, prefix="scroll", overlap=60, delay=0.4, max_scrolls=30):
+def capture_scroll_screenshot(page, save_dir, prefix="scroll", overlap=60, delay=0.4, max_scrolls=3):
     save_dir = Path(save_dir)
     save_dir.mkdir(parents=True, exist_ok=True)
 

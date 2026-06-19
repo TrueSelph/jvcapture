@@ -53,7 +53,7 @@ def remove_generic_overlays(page):
         pass
 
 
-def capture_default(url: str, max_scrolls: int = 30, headless: bool = True, timezone: str = None, locale: str = None, proxy: str = None, proxy_timeout: int = 20, geoip: bool = None, save_image: bool = False) -> dict:
+def capture_default(url: str, max_scrolls: int = 3, headless: bool = True, timezone: str = None, locale: str = None, proxy: str = None, proxy_timeout: int = 20, geoip: bool = None, save_image: bool = False, **kwargs) -> dict:
     tmpdir = tempfile.mkdtemp(prefix="jvcapture_default_")
     save_dir = Path(tmpdir)
     save_dir.mkdir(parents=True, exist_ok=True)
